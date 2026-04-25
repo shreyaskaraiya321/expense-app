@@ -170,7 +170,7 @@ let allExpenses = [];
 let selectedMonth = "";
 let budgetMap = {};
 
-/* ================== GLOBAL FUNCTIONS ================== */
+/* ================== GLOBAL ================== */
 
 window.addExpense = async () => {
   const amount = document.getElementById("amount").value;
@@ -200,16 +200,22 @@ window.quickAdd = async (amount) => {
   loadData();
 };
 
+/* 🔥 FIXED BUDGET FUNCTION */
 window.saveBudget = async () => {
-  if(!selectedMonth) return alert("Select month first");
+
+  // auto month set
+  if(!selectedMonth){
+    selectedMonth = new Date().toISOString().slice(0,7);
+  }
 
   const budget = Number(document.getElementById("budgetInput").value);
+  if(!budget) return alert("Enter budget");
 
   await setDoc(doc(db, "budgets", selectedMonth), {
     amount: budget
   });
 
-  alert("Budget Saved");
+  alert("Budget saved for " + selectedMonth);
   loadData();
 };
 
@@ -226,7 +232,7 @@ window.del = async (id) => {
   loadData();
 };
 
-/* ================== CORE FUNCTIONS ================== */
+/* ================== CORE ================== */
 
 async function loadData() {
   allExpenses = [];
@@ -246,6 +252,7 @@ async function loadData() {
   render();
 }
 
+/* 🔥 FIXED MONTH LOGIC */
 function loadMonths() {
   const box = document.getElementById("monthPicker");
   box.innerHTML = "";
@@ -271,8 +278,13 @@ function loadMonths() {
     box.appendChild(btn);
   });
 
-  if(!selectedMonth && months.length) {
-    selectedMonth = months[months.length - 1];
+  // 🔥 FIX: always set month
+  if(!selectedMonth){
+    if(months.length){
+      selectedMonth = months[months.length - 1];
+    } else {
+      selectedMonth = new Date().toISOString().slice(0,7);
+    }
     loadMonths();
   }
 }
@@ -301,7 +313,7 @@ function render() {
   document.getElementById("total").innerText =
     selectedMonth ? `Total for ${selectedMonth}: ₹${total}` : "";
 
-  /* ===== SMART PLANNER ===== */
+  /* SMART PLANNER */
 
   const budget = budgetMap[selectedMonth] || 0;
   const savePercent = document.getElementById("saveSlider").value;
@@ -322,8 +334,7 @@ function render() {
   `;
 }
 
-/* ================== FIX (MOST IMPORTANT) ================== */
-
+/* INIT */
 window.addEventListener("DOMContentLoaded", () => {
   document.getElementById("date").valueAsDate = new Date();
   loadData();
