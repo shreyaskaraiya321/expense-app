@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Expense Tracker</title>
+
+<link rel="manifest" href="manifest.json">
+
+<style>
+body {
+  font-family: Arial;
+  background:#f5f7fa;
+  padding:10px;
+}
+
+.container {
+  max-width:900px;
+  margin:auto;
+  background:#fff;
+  padding:15px;
+  border-radius:10px;
+}
+
+h1 { text-align:center; }
+
+input, button {
+  width:100%;
+  padding:12px;
+  margin-top:8px;
+  border-radius:6px;
+  border:1px solid #ccc;
+}
+
+button {
+  background:#4f46e5;
+  color:white;
+  font-weight:bold;
+}
+
+/* QUICK */
+.quick-row {
+  display:flex;
+  gap:10px;
+}
+.quick-row button {
+  flex:1;
+  background:#059669;
+}
+
+/* MONTH */
+.month-picker {
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:8px;
+  margin-top:10px;
+}
+
+.month-btn {
+  padding:10px;
+  background:#eee;
+  border-radius:6px;
+}
+
+.month-btn.active {
+  background:#4f46e5;
+  color:white;
+}
+
+/* TABLE */
+table {
+  width:100%;
+  border-collapse:collapse;
+  margin-top:10px;
+}
+
+th, td {
+  border:1px solid #ddd;
+  padding:8px;
+  text-align:center;
+  font-size:13px;
+}
+
+.delete-btn {
+  background:#dc2626;
+  color:white;
+  padding:6px;
+}
+
+@media(max-width:600px){
+  table {
+    display:block;
+    overflow-x:auto;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>Monthly Expense Tracker</h1>
+
+<h2>Add Expense</h2>
+
+<input type="number" id="amount" placeholder="Amount">
+<input type="text" id="reason" placeholder="Reason">
+<input type="date" id="date">
+
+<button onclick="addExpense()">Add Expense</button>
+
+<div class="quick-row">
+  <button onclick="quickAdd(25)">+ ₹25</button>
+  <button onclick="quickAdd(30)">+ ₹30</button>
+</div>
+<h2>Budget & Smart Planner</h2>
+
+<input type="number" id="budgetInput" placeholder="Monthly Budget">
+
+<button onclick="saveBudget()">Save Budget</button>
+
+<h4>Save Percentage</h4>
+<input type="range" id="saveSlider" min="0" max="100" value="50" oninput="updatePercent()">
+
+<p id="percentText">Save: 50% | Spend: 50%</p>
+
+<div id="summary"></div>
+
+<h2>Expense Records</h2>
+
+<div id="monthPicker" class="month-picker"></div>
+
+<table>
+<thead>
+<tr>
+<th>Date</th>
+<th>Amount</th>
+<th>Reason</th>
+<th>Action</th>
+</tr>
+</thead>
+
+<tbody id="table"></tbody>
+</table>
+
+<h3 id="total"></h3>
+
+</div>
+
+<!-- FIREBASE + APP LOGIC -->
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAOsvl8x0drH8ghKyEWocyUTfy0S1N-fuk",
+  authDomain: "expense-tracker-9b288.firebaseapp.com",
+  projectId: "expense-tracker-9b288",
+  storageBucket: "expense-tracker-9b288.firebasestorage.app",
+  messagingSenderId: "291365762379",
+  appId: "1:291365762379:web:04d696bf05033670ae64ce"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+let allExpenses = [];
+let selectedMonth = "";
+let budgetMap = {};
+
+/* ADD */
+window.addExpense = async function(){
+  const amount = document.getElementById("amount").value;
+  const reason = document.getElementById("reason").value;
+  const date = document.getElementById("date").value;
+
+  if(!amount || !reason || !date) return alert("Fill all");
+
+  await addDoc(collection(db, "expenses"), {
+    amount:Number(amount),
+    reason,
+    date
+  });
+
+  loadData();
+}
+
+/* QUICK */
+window.quickAdd = async function(amount){
+  const date = new Date().toISOString().split('T')[0];
+
+  await addDoc(collection(db, "expenses"), {
+    amount,
+    reason:"Quick",
+    date
+  });
+
+  loadData();
+}
+
+/* SAVE BUDGET (one per month) */
+window.saveBudget = async function(){
+  if(!selectedMonth) return alert("Select month first");
+
+  const budget = Number(document.getElementById("budgetInput").value);
+
+  await setDoc(doc(db, "budgets", selectedMonth), {
+    amount: budget
+  });
+
+  alert("Budget Saved");
+  loadData();
+}
+
+/* SLIDER */
+window.updatePercent = function(){
+  const val = document.getElementById("saveSlider").value;
+  document.getElementById("percentText").innerText =
+    `Save: ${val}% | Spend: ${100-val}%`;
+
+  render();
+}
+
+/* LOAD */
+async function loadData(){
+  allExpenses = [];
+  budgetMap = {};
+
+  // expenses
+  const expSnap = await getDocs(collection(db, "expenses"));
+  expSnap.forEach(docSnap=>{
+    allExpenses.push({ id: docSnap.id, ...docSnap.data() });
+  });
+
+  // budgets
+  const budSnap = await getDocs(collection(db, "budgets"));
+  budSnap.forEach(docSnap=>{
+    budgetMap[docSnap.id] = docSnap.data().amount;
+  });
+
+  loadMonths();
+  render();
+}
+
+/* MONTHS */
+function loadMonths(){
+  const box = document.getElementById("monthPicker");
+  box.innerHTML = "";
+
+  const months = [...new Set(allExpenses.map(e=>e.date.slice(0,7)))].sort();
+
+  months.forEach(m=>{
+    const btn = document.createElement("button");
+
+    btn.className = "month-btn" + (m===selectedMonth ? " active":"");
+
+    const [y, mo] = m.split("-");
+    const name = new Date(y, mo-1).toLocaleString("default",{month:"short"});
+
+    btn.innerText = name+" "+y;
+
+    btn.onclick = ()=>{
+      selectedMonth = m;
+      loadMonths();
+      render();
+    };
+
+    box.appendChild(btn);
+  });
+
+  if(!selectedMonth && months.length){
+    selectedMonth = months[months.length-1];
+    loadMonths();
+  }
+}
+
+/* RENDER */
+function render(){
+  const table = document.getElementById("table");
+  table.innerHTML = "";
+
+  let total = 0;
+
+  allExpenses.forEach(e=>{
+    if(e.date.startsWith(selectedMonth)){
+      total += e.amount;
+
+      table.innerHTML += `
+        <tr>
+          <td>${e.date}</td>
+          <td>₹${e.amount}</td>
+          <td>${e.reason}</td>
+          <td><button class="delete-btn" onclick="del('${e.id}')">Delete</button></td>
+        </tr>
+      `;
+    }
+  });
+
+  document.getElementById("total").innerText =
+    selectedMonth ? `Total for ${selectedMonth}: ₹${total}` : "";
+
+  /* ===== SMART PLANNER ===== */
+
+  const budget = budgetMap[selectedMonth] || 0;
+  const savePercent = document.getElementById("saveSlider").value;
+
+  const saveAmount = (total * savePercent) / 100;
+  const spendAmount = total - saveAmount;
+  const remaining = budget - total;
+
+  document.getElementById("summary").innerHTML = `
+    <h3>Total for ${selectedMonth}: ₹${total}</h3>
+    <p style="color:green;">
+      Remaining ₹${remaining} | Save ₹${saveAmount.toFixed(0)} | Spend ₹${spendAmount.toFixed(0)}
+    </p>
+    <h3>Overall Total: ₹${allExpenses.reduce((s,e)=>s+e.amount,0)}</h3>
+    <div style="border-left:4px solid #4f46e5; padding:10px;">
+      Save ₹${saveAmount.toFixed(0)} aside. Spend max ₹${spendAmount.toFixed(0)}.
+    </div>
+  `;
+}
+
+/* DELETE */
+window.del = async function(id){
+  await deleteDoc(doc(db, "expenses", id));
+  loadData();
+}
+
+/* INIT */
+document.getElementById("date").valueAsDate = new Date();
+loadData();
+
+</script>
+
+</body>
+</html>
