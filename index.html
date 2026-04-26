@@ -95,7 +95,12 @@ th, td {
 }
 </style>
 </head>
-
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./service-worker.js')
+    .then(() => console.log("SW registered"));
+}
+</script>
 <body>
 
 <div class="container">
@@ -181,7 +186,15 @@ function addExpense(){
     amount: Number(amount),
     reason,
     date
-  }).then(loadData);
+  }).then(()=>{
+    document.getElementById("amount").value = "";
+    document.getElementById("reason").value = "";
+
+    loadData();
+
+    // 🔥 move here
+    window.scrollTo({top:0, behavior:"smooth"});
+  });
 }
 
 /* QUICK */

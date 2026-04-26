@@ -1,15 +1,36 @@
-const CACHE = "expense-app";
+let isAdding = false;
 
-self.addEventListener("install", e => {
-  e.waitUntil(
-    caches.open(CACHE).then(c =>
-      c.addAll(["./", "./index.html"])
-    )
-  );
-});
+function addExpense(){
+  if(isAdding) return;
+  isAdding = true;
 
-self.addEventListener("fetch", e => {
-  e.respondWith(
-    caches.match(e.request).then(r => r || fetch(e.request))
-  );
-});
+  const amount = document.getElementById("amount").value;
+  const reason = document.getElementById("reason").value;
+  const date = document.getElementById("date").value;
+
+  if(!amount || !reason || !date){
+    isAdding = false; // 🔥 important
+    return alert("Fill all");
+  }
+
+  db.collection("expenses").add({
+    amount: Number(amount),
+    reason,
+    date
+  })
+  .then(()=>{
+    document.getElementById("amount").value = "";
+    document.getElementById("reason").value = "";
+
+    loadData();
+
+    window.scrollTo({top:0, behavior:"smooth"});
+    console.log("Expense added");
+  })
+  .catch((err)=>{
+    console.error(err);
+  })
+  .finally(()=>{
+    isAdding = false; // 🔥 reset lock
+  });
+}
