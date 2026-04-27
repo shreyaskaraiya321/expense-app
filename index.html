@@ -1,350 +1,985 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Expense Tracker</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nova Expenses | Premium Tracker</title>
 
-<link rel="manifest" href="manifest.json">
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="manifest.json">
 
-<style>
-body {
-  font-family: Arial;
-  background:#f5f7fa;
-  padding:10px;
-}
+  <!-- Meta tags for PWA scaling & SEO -->
+  <meta name="description"
+    content="Nova Expenses - A beautifully designed, powerful Progressive Web App to track your daily expenses and plan your budget.">
+  <meta name="theme-color" content="#0f172a">
 
-.container {
-  max-width:900px;
-  margin:auto;
-  background:#fff;
-  padding:15px;
-  border-radius:10px;
-}
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet">
 
-h1 { text-align:center; }
+  <style>
+    /* CSS Variables */
+    :root {
+      --bg-color: #f8fafc;
+      --surface: rgba(255, 255, 255, 0.6);
+      --surface-border: rgba(255, 255, 255, 0.8);
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+      --success: #10b981;
+      --danger: #ef4444;
+      --text-main: #1d1d1f;
+      --text-muted: #86868b;
+      --radius: 16px;
+      --font-display: 'Plus Jakarta Sans', sans-serif;
+      --font-body: 'Inter', sans-serif;
+    }
 
-input, button {
-  width:100%;
-  padding:12px;
-  margin-top:8px;
-  border-radius:6px;
-  border:1px solid #ccc;
-}
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-button {
-  background:#4f46e5;
-  color:white;
-  font-weight:bold;
-}
+    body {
+      font-family: var(--font-body);
+      background: linear-gradient(135deg, #f0f4ff 0%, #fff0f5 50%, #e0f2fe 100%);
+      color: var(--text-main);
+      min-height: 100vh;
+      padding: 40px 20px;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+      position: relative;
+    }
 
-/* QUICK */
-.quick-row {
-  display:flex;
-  gap:10px;
-}
-.quick-row button {
-  flex:1;
-  background:#059669;
-}
+    /* Background animated glows for glassmorphism effect */
+    .bg-glow-1, .bg-glow-2 {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(100px);
+      z-index: -1;
+      animation: float 12s infinite ease-in-out alternate;
+    }
+    .bg-glow-1 {
+      width: 400px; height: 400px;
+      background: rgba(196, 181, 253, 0.5); /* Soft lavender */
+      top: -50px; left: -50px;
+    }
+    .bg-glow-2 {
+      width: 500px; height: 500px;
+      background: rgba(186, 230, 253, 0.4); /* Soft light blue */
+      bottom: -100px; right: -100px;
+      animation-delay: -6s;
+    }
+    @keyframes float {
+      0% { transform: translate(0, 0) scale(1); }
+      100% { transform: translate(40px, 60px) scale(1.1); }
+    }
 
-/* MONTH */
-.month-picker {
-  display:grid;
-  grid-template-columns:repeat(2,1fr);
-  gap:8px;
-  margin-top:10px;
-}
+    .app-container {
+      max-width: 800px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
 
-.month-btn {
-  padding:10px;
-  background:#eee;
-  border-radius:6px;
-}
+    header.app-header {
+      text-align: center;
+      margin-bottom: 40px;
+      position: relative;
+    }
 
-.month-btn.active {
-  background:#4f46e5;
-  color:white;
-}
+    header h1 {
+      font-family: var(--font-display);
+      font-size: 2.8rem;
+      font-weight: 800;
+      color: var(--text-main);
+      text-align: center;
+      width: 100%;
+      letter-spacing: -1.5px;
+    }
 
-/* TABLE */
-table {
-  width:100%;
-  border-collapse:collapse;
-  margin-top:10px;
-}
+    .sync-widget {
+      display: none;
+    }
 
-th, td {
-  border:1px solid #ddd;
-  padding:8px;
-  text-align:center;
-  font-size:13px;
-}
+    /* Card */
+    .glass-card {
+      background: var(--surface);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--surface-border);
+      border-radius: var(--radius);
+      padding: 35px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+      margin-bottom: 30px;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
 
-.delete-btn {
-  background:#dc2626;
-  color:white;
-  padding:6px;
-}
+    .glass-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    }
 
-@media(max-width:600px){
-  table {
-    display:block;
-    overflow-x:auto;
-  }
-}
-</style>
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 25px;
+    }
+
+    .card-header.flex-between {
+      justify-content: space-between;
+    }
+
+    .card-header h2 {
+      font-family: var(--font-display);
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--text-main);
+      letter-spacing: -0.5px;
+    }
+
+    .mt-2 {
+      margin-top: 10px;
+    }
+
+    .mt-3 {
+      margin-top: 15px;
+    }
+
+    .mt-4 {
+      margin-top: 25px;
+    }
+
+    .mb-0 {
+      margin-bottom: 0 !important;
+    }
+
+    .mb-4 {
+      margin-bottom: 25px;
+    }
+
+    .w-full {
+      width: 100%;
+    }
+
+    .text-right {
+      text-align: right;
+    }
+
+    .text-center {
+      text-align: center;
+    }
+
+    /* Inputs matching reference */
+    .input-group {
+      margin-bottom: 20px;
+    }
+
+    .input-group label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 8px;
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      position: static;
+      transform: none;
+      pointer-events: auto;
+    }
+
+    .input-group input {
+      width: 100%;
+      padding: 14px 16px;
+      background: rgba(255, 255, 255, 0.5);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.8);
+      border-radius: 10px;
+      color: var(--text-main);
+      font-family: var(--font-body);
+      font-size: 1.05rem;
+      transition: all 0.3s ease;
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.02);
+    }
+
+    .input-group input:focus {
+      outline: none;
+      border-color: rgba(99, 102, 241, 0.5);
+      background: rgba(255, 255, 255, 0.8);
+      box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15), inset 0 2px 4px rgba(0, 0, 0, 0.01);
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 14px 24px;
+      border: none;
+      border-radius: 10px;
+      font-family: var(--font-display);
+      font-weight: 600;
+      font-size: 1.05rem;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .primary-btn {
+      background: linear-gradient(135deg, #6366f1, #a855f7);
+      color: #fff;
+      width: 100%;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .primary-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(99, 102, 241, 0.35);
+    }
+
+    .primary-btn:active {
+      transform: translateY(1px);
+      box-shadow: 0 2px 8px rgba(99, 102, 241, 0.2);
+    }
+
+    .quick-row {
+      display: none;
+    }
+
+    /* Slider matching reference */
+    .slider-container {
+      padding: 5px 0;
+      margin-bottom: 20px;
+    }
+
+    .slider-labels {
+      margin-top: 15px;
+    }
+
+    .label-sub {
+      font-weight: 600;
+      font-size: 1rem;
+      color: var(--text-muted);
+      display: block;
+      margin-top: 25px;
+      margin-bottom: 12px;
+    }
+
+    .custom-range {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 12px;
+      background: rgba(225, 29, 72, 0.15);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(225, 29, 72, 0.3);
+      border-radius: 8px;
+      outline: none;
+      margin-bottom: 20px;
+      box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    .custom-range::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: #e11d48;
+      border: 3px solid rgba(255, 255, 255, 0.9);
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(225, 29, 72, 0.4);
+      transition: all 0.3s ease;
+      backdrop-filter: blur(4px);
+    }
+
+    .custom-range::-webkit-slider-thumb:hover {
+      transform: scale(1.15);
+      box-shadow: 0 6px 16px rgba(225, 29, 72, 0.5);
+    }
+
+    /* Dashboard Summary Custom readout */
+    .dashboard-readout {
+      font-family: var(--font-body);
+      margin-top: 25px;
+      background: rgba(255, 255, 255, 0.5);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-radius: 12px;
+      padding: 20px;
+      border: 1px solid var(--surface-border);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+    }
+
+    .readout-total {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 10px;
+    }
+
+    .readout-green {
+      color: var(--success);
+      font-weight: 600;
+      font-size: 1.1rem;
+      margin-bottom: 16px;
+      background: rgba(16, 185, 129, 0.1);
+      padding: 8px 12px;
+      border-radius: 8px;
+      display: inline-block;
+    }
+
+    .readout-overall {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 15px;
+    }
+
+    .readout-quote {
+      border-left: 4px solid var(--primary);
+      padding-left: 15px;
+      font-size: 1.05rem;
+      color: var(--text-main);
+      font-weight: 500;
+      line-height: 1.5;
+    }
+
+    /* Month Picker */
+    .month-picker {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .month-btn {
+      background: rgba(255, 255, 255, 0.6);
+      backdrop-filter: blur(5px);
+      -webkit-backdrop-filter: blur(5px);
+      border: 1px solid var(--surface-border);
+      color: var(--text-muted);
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-weight: 500;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+    }
+
+    .month-btn:hover {
+      background: rgba(255, 255, 255, 0.9);
+      color: var(--text-main);
+    }
+
+    .month-btn.active {
+      background: linear-gradient(135deg, #6366f1, #a855f7);
+      color: #fff;
+      border-color: transparent;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+    }
+
+    /* Table */
+    .table-responsive {
+      overflow-x: auto;
+      margin-top: 10px;
+      border-radius: 12px;
+    }
+
+    .nova-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      min-width: 400px;
+    }
+
+    .nova-table th {
+      text-align: left;
+      padding: 16px 12px;
+      border-bottom: 2px solid rgba(209, 213, 219, 0.4);
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 0.95rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .nova-table td {
+      padding: 16px 12px;
+      border-bottom: 1px solid rgba(209, 213, 219, 0.3);
+      color: var(--text-main);
+      font-weight: 500;
+    }
+
+    .nova-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .empty-table {
+      text-align: center;
+      padding: 40px !important;
+      color: var(--text-muted);
+      font-style: italic;
+    }
+
+    .delete-btn {
+      background: rgba(239, 68, 68, 0.1);
+      color: var(--danger);
+      border: 1px solid rgba(239, 68, 68, 0.2);
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 600;
+      transition: all 0.2s ease;
+    }
+
+    .delete-btn:hover {
+      background: var(--danger);
+      color: #fff;
+    }
+
+    /* Loader & Toasts */
+    .loader-overlay {
+      display: none !important;
+    }
+
+    .toast-container {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      z-index: 999;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .toast {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.9);
+      border-left: 4px solid var(--primary);
+      color: var(--text-main);
+      padding: 16px 24px;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+      font-weight: 500;
+      font-size: 0.95rem;
+      animation: slideIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+      opacity: 0;
+      transform: translateY(30px);
+    }
+
+    .toast.error {
+      border-left-color: var(--danger);
+    }
+
+    .toast.success {
+      border-left-color: var(--success);
+    }
+
+    .toast.out {
+      animation: slideOut 0.3s forwards;
+    }
+
+    @keyframes slideIn {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes slideOut {
+      to {
+        opacity: 0;
+        transform: translateY(20px) scale(0.9);
+      }
+    }
+
+    /* Mobile Responsiveness */
+    @media (max-width: 600px) {
+      body {
+        padding: 20px 10px;
+      }
+
+      header.app-header {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-bottom: 25px;
+      }
+
+      header h1 {
+        font-size: 2.2rem;
+      }
+
+      .sync-widget {
+        position: static;
+        margin-top: 10px;
+        display: inline-block;
+      }
+
+      .glass-card {
+        padding: 20px;
+        border-radius: 12px;
+      }
+
+      .card-header.flex-between {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+      }
+
+      .card-header h2 {
+        font-size: 1.5rem;
+      }
+
+      .input-group input {
+        padding: 12px 14px;
+        font-size: 1rem;
+      }
+
+      .btn {
+        padding: 12px 20px;
+        font-size: 1rem;
+      }
+
+      .nova-table th,
+      .nova-table td {
+        padding: 12px 8px;
+        font-size: 0.9rem;
+      }
+
+      .readout-total {
+        font-size: 1.15rem;
+      }
+
+      .readout-green {
+        font-size: 1rem;
+        padding: 6px 10px;
+      }
+
+      .readout-overall {
+        font-size: 1rem;
+      }
+
+      .readout-quote {
+        font-size: 0.95rem;
+        padding-left: 10px;
+      }
+
+      .toast-container {
+        bottom: 20px;
+        right: 20px;
+        left: 20px;
+        align-items: stretch;
+      }
+
+      .toast {
+        font-size: 0.9rem;
+      }
+    }
+  </style>
 </head>
-<script>
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('./service-worker.js')
-    .then(() => console.log("SW registered"));
-}
-</script>
+
 <body>
 
-<div class="container">
+  <div class="bg-glow-1"></div>
+  <div class="bg-glow-2"></div>  <div id="loader" class="loader-overlay active">
+    <div class="spinner"></div>
+  </div>
 
-<h1>Monthly Expense Tracker</h1>
+  <div id="toast-container" class="toast-container"></div>
 
-<h2>Add Expense</h2>
+  <div class="app-container">
+    <header class="app-header">
+      <h1>Monthly Expense Tracker</h1>
+      <div class="sync-widget">
+        <span id="syncCodeDisplay">----</span>
+        <button onclick="promptLinkDevice()"
+          style="background: none; border: none; cursor: pointer; text-decoration: underline; margin-left: 5px;">Link</button>
+      </div>
+    </header>
 
-<input type="number" id="amount" placeholder="Amount">
-<input type="text" id="reason" placeholder="Reason">
-<input type="date" id="date">
+    <main>
+      <!-- Add Expense Card -->
+      <section class="glass-card">
+        <div class="card-header">
+          <h2>Add Expense</h2>
+        </div>
 
-<button onclick="addExpense()">Add Expense</button>
+        <div class="input-group">
+          <label>Amount</label>
+          <input type="number" id="amount" required>
+        </div>
 
-<div class="quick-row">
-  <button onclick="quickAdd(25)">+ ₹25</button>
-  <button onclick="quickAdd(30)">+ ₹30</button>
-</div>
-<h2>Budget & Smart Planner</h2>
+        <div class="input-group">
+          <label>Reason</label>
+          <input type="text" id="reason" required>
+        </div>
 
-<input type="number" id="budgetInput" placeholder="Monthly Budget">
+        <div class="input-group">
+          <label>Date</label>
+          <input type="date" id="date" required>
+        </div>
 
-<button onclick="saveBudget()">Save Budget</button>
+        <button id="addBtn" class="btn primary-btn mt-2">Add Expense</button>
 
-<h4>Save Percentage</h4>
-<input type="range" id="saveSlider" min="0" max="100" value="50" oninput="updatePercent()">
+        <div class="quick-row mt-3">
+          <button class="btn quickBtn" data-amount="25">+ ₹25</button>
+          <button class="btn quickBtn" data-amount="50">+ ₹50</button>
+          <button class="btn quickBtn" data-amount="100">+ ₹100</button>
+        </div>
+      </section>
 
-<p id="percentText">Save: 50% | Spend: 50%</p>
+      <!-- Budget Card -->
+      <section class="glass-card">
+        <div class="card-header">
+          <h2>Budget & Smart Planner</h2>
+        </div>
 
-<div id="summary"></div>
+        <div class="input-group">
+          <label>Monthly Budget</label>
+          <input type="number" id="budgetInput" required>
+        </div>
+        <button id="saveBudgetBtn" class="btn primary-btn mb-4">Save Budget</button>
 
-<h2>Expense Records</h2>
+        <div class="slider-container">
+          <label class="label-sub">Save Percentage</label>
+          <input type="range" id="saveSlider" min="0" max="100" value="50" class="custom-range">
+          <div id="percentText" style="font-weight:700; color:#000;">Save: 50% | Spend: 50%</div>
+        </div>
+      </section>
 
-<div id="monthPicker" class="month-picker"></div>
+      <!-- History / Dashboard -->
+      <section class="glass-card">
+        <div class="card-header flex-between mb-4">
+          <h2>Records</h2>
+          <div id="monthPicker" class="month-picker"></div>
+        </div>
 
-<table>
-<thead>
-<tr>
-<th>Date</th>
-<th>Amount</th>
-<th>Reason</th>
-<th>Action</th>
-</tr>
-</thead>
+        <div class="table-responsive">
+          <table class="nova-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Reason</th>
+                <th class="text-right">Amount</th>
+                <th class="text-center">Action</th>
+              </tr>
+            </thead>
+            <tbody id="table">
+              <!-- JS -->
+            </tbody>
+          </table>
+        </div>
 
-<tbody id="table"></tbody>
-</table>
+        <div id="summary" class="dashboard-readout">
+          <!-- Populated by JS -->
+        </div>
+      </section>
+    </main>
+  </div>
 
-<h3 id="total"></h3>
+  <!-- Firebase Config -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
-</div>
+  <script>
+    // --- UI Helpers (Toaster) ---
+    function showToast(msg, type = "info") {
+      const container = document.getElementById("toast-container");
+      const t = document.createElement("div");
+      t.className = `toast ${type}`;
+      t.innerText = msg;
+      container.appendChild(t);
+      setTimeout(() => {
+        t.classList.add("out");
+        setTimeout(() => t.remove(), 300);
+      }, 3000);
+    }
 
-<!-- FIREBASE + APP LOGIC -->
+    function showLoader() { document.getElementById("loader").classList.add("active"); }
+    function hideLoader() { document.getElementById("loader").classList.remove("active"); }
 
-
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-
-<script>
-
-const firebaseConfig = {
-  apiKey: "AIzaSyAOsvl8x0drH8ghKyEWocyUTfy0S1N-fuk",
-  authDomain: "expense-tracker-9b288.firebaseapp.com",
-  projectId: "expense-tracker-9b288",
-};
-
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-
-let allExpenses = [];
-let selectedMonth = "";
-let budgetMap = {};
-
-/* ADD */
-function addExpense(){
-  const amount = document.getElementById("amount").value;
-  const reason = document.getElementById("reason").value;
-  const date = document.getElementById("date").value;
-
-  if(!amount || !reason || !date) return alert("Fill all");
-
-  db.collection("expenses").add({
-    amount: Number(amount),
-    reason,
-    date
-  }).then(()=>{
-    document.getElementById("amount").value = "";
-    document.getElementById("reason").value = "";
-
-    loadData();
-
-    // 🔥 move here
-    window.scrollTo({top:0, behavior:"smooth"});
-  });
-}
-
-/* QUICK */
-function quickAdd(amount){
-  const date = new Date().toISOString().split('T')[0];
-
-  db.collection("expenses").add({
-    amount,
-    reason:"Quick",
-    date
-  }).then(loadData);
-}
-
-/* BUDGET */
-function saveBudget(){
-  if(!selectedMonth){
-    selectedMonth = new Date().toISOString().slice(0,7);
-  }
-
-  const budget = Number(document.getElementById("budgetInput").value);
-  if(!budget) return alert("Enter budget");
-
-  db.collection("budgets").doc(selectedMonth).set({
-    amount: budget
-  }).then(()=>{
-    alert("Budget saved");
-    loadData();
-  });
-}
-
-/* SLIDER */
-function updatePercent(){
-  const val = document.getElementById("saveSlider").value;
-  document.getElementById("percentText").innerText =
-    `Save: ${val}% | Spend: ${100-val}%`;
-
-  render();
-}
-
-/* DELETE */
-function del(id){
-  db.collection("expenses").doc(id).delete().then(loadData);
-}
-
-/* LOAD */
-function loadData(){
-  allExpenses = [];
-  budgetMap = {};
-
-  db.collection("expenses").get().then(snap=>{
-    snap.forEach(doc=>{
-      allExpenses.push({ id: doc.id, ...doc.data() });
-    });
-
-    return db.collection("budgets").get();
-  }).then(snap=>{
-    snap.forEach(doc=>{
-      budgetMap[doc.id] = doc.data().amount;
-    });
-
-    loadMonths();
-    render();
-  });
-}
-
-/* MONTH */
-function loadMonths(){
-  const box = document.getElementById("monthPicker");
-  box.innerHTML = "";
-
-  const months = [...new Set(allExpenses.map(e=>e.date.slice(0,7)))].sort();
-
-  if(!selectedMonth){
-    selectedMonth = months.length
-      ? months[months.length-1]
-      : new Date().toISOString().slice(0,7);
-  }
-
-  months.forEach(m=>{
-    const btn = document.createElement("button");
-
-    btn.className = "month-btn" + (m===selectedMonth ? " active":"");
-
-    const [y, mo] = m.split("-");
-    const name = new Date(y, mo-1).toLocaleString("default",{month:"short"});
-
-    btn.innerText = name+" "+y;
-
-    btn.onclick = ()=>{
-      selectedMonth = m;
-      loadMonths();
-      render();
+    // --- Firebase Init ---
+    const firebaseConfig = {
+      apiKey: "AIzaSyAOsvl8x0drH8ghKyEWocyUTfy0S1N-fuk",
+      authDomain: "expense-tracker-9b288.firebaseapp.com",
+      projectId: "expense-tracker-9b288",
     };
+    firebase.initializeApp(firebaseConfig);
 
-    box.appendChild(btn);
-  });
-}
+    firebase.firestore().enablePersistence().catch((err) => {
+      console.warn("Offline persistence not enabled:", err.code);
+    });
 
-/* RENDER */
-function render(){
-  const table = document.getElementById("table");
-  table.innerHTML = "";
+    const db = firebase.firestore();
 
-  let total = 0;
+    let _deviceId = localStorage.getItem("nova_sync_id");
+    if (!_deviceId) {
+      _deviceId = Math.random().toString(36).substring(2, 6).toUpperCase() + "-" + Math.random().toString(36).substring(2, 6).toUpperCase();
+      localStorage.setItem("nova_sync_id", _deviceId);
+    }
 
-  allExpenses.forEach(e=>{
-    if(e.date.startsWith(selectedMonth)){
-      total += e.amount;
+    let allExpenses = [];
+    let selectedMonth = "";
+    let budgetMap = {};
 
-      table.innerHTML += `
+    let expensesUnsub = null;
+    let budgetsUnsub = null;
+
+    function promptLinkDevice() {
+      const code = prompt("Enter an existing Sync Code to link this device:", _deviceId);
+      if (code && code.trim() !== "") {
+        _deviceId = code.trim().toUpperCase();
+        localStorage.setItem("nova_sync_id", _deviceId);
+        showToast("Device linked! Re-syncing data...", "success");
+        loadData();
+      }
+    }
+
+    // --- Logic ---
+    function addExpense() {
+      const btn = document.getElementById("addBtn");
+      if (btn.disabled) return;
+      const amount = document.getElementById("amount").value;
+      const reason = document.getElementById("reason").value;
+      const date = document.getElementById("date").value;
+
+      if (!amount || !reason || !date) {
+        return showToast("Please fill all required fields", "error");
+      }
+
+      showLoader();
+      btn.disabled = true;
+      db.collection("expenses").add({
+        amount: Number(amount),
+        reason,
+        date,
+        deviceId: _deviceId
+      }).then(() => {
+        document.getElementById("amount").value = "";
+        document.getElementById("reason").value = "";
+        showToast("Expense logged securely!", "success");
+        if (window.innerWidth < 900) {
+          document.querySelector('.dashboard-hero').scrollIntoView({ behavior: "smooth" });
+        }
+      }).catch(err => {
+        showToast("Error adding expense.", "error");
+        console.error(err);
+      }).finally(() => {
+        hideLoader();
+        btn.disabled = false;
+      });
+    }
+
+    function quickAdd(amount, btnElement) {
+      if (btnElement.disabled) return;
+      const date = new Date().toISOString().split('T')[0];
+      showLoader();
+      btnElement.disabled = true;
+      db.collection("expenses").add({
+        amount,
+        reason: "Quick Add",
+        date,
+        deviceId: _deviceId
+      }).then(() => {
+        showToast(`Quickly logged ₹${amount}`, "success");
+      }).catch(err => {
+        showToast("Error fast-logging.", "error");
+      }).finally(() => {
+        hideLoader();
+        btnElement.disabled = false;
+      });
+    }
+
+    function saveBudget() {
+      if (!selectedMonth) {
+        selectedMonth = new Date().toISOString().slice(0, 7);
+      }
+      const budget = Number(document.getElementById("budgetInput").value);
+      if (!budget) return showToast("Enter a valid budget amount", "error");
+
+      showLoader();
+      db.collection("budgets").doc(_deviceId + "_" + selectedMonth).set({
+        amount: budget
+      }).then(() => {
+        showToast(`Budget set to ₹${budget} for the month`, "success");
+        hideLoader();
+      }).catch(err => {
+        hideLoader();
+        showToast("Error saving budget", "error");
+      });
+    }
+
+    function updatePercent() {
+      const val = document.getElementById("saveSlider").value;
+      document.getElementById("percentText").innerText = `Save: ${val}% | Spend: ${100 - val}%`;
+      render();
+    }
+
+    function del(id) {
+      showLoader();
+      db.collection("expenses").doc(id).delete().then(() => {
+        showToast("Expense record removed", "success");
+        hideLoader();
+      }).catch(err => {
+        hideLoader();
+        showToast("Failed to delete record", "error");
+      });
+    }
+
+    function loadData() {
+      if (expensesUnsub) expensesUnsub();
+      if (budgetsUnsub) budgetsUnsub();
+
+      document.getElementById("syncCodeDisplay").innerText = _deviceId;
+      showLoader();
+
+      budgetsUnsub = db.collection("budgets")
+        .where(firebase.firestore.FieldPath.documentId(), '>=', _deviceId + "_")
+        .where(firebase.firestore.FieldPath.documentId(), '<=', _deviceId + "_\uf8ff")
+        .onSnapshot(snap => {
+          budgetMap = {};
+          snap.forEach(doc => {
+            const m = doc.id.split("_")[1];
+            budgetMap[m] = doc.data().amount;
+          });
+          loadMonths();
+          render();
+        }, err => {
+          console.warn("Budget sync error", err);
+        });
+
+      expensesUnsub = db.collection("expenses").where("deviceId", "==", _deviceId).onSnapshot(snap => {
+        allExpenses = [];
+        snap.forEach(doc => {
+          allExpenses.push({ id: doc.id, ...doc.data() });
+        });
+        // Sort locally by descending date
+        allExpenses.sort((a, b) => b.date.localeCompare(a.date));
+
+        loadMonths();
+        render();
+        hideLoader();
+      }, err => {
+        hideLoader();
+        showToast("Error syncing data from cloud", "error");
+        console.error(err);
+      });
+    }
+
+    function loadMonths() {
+      const box = document.getElementById("monthPicker");
+      box.innerHTML = "";
+
+      const months = [...new Set(allExpenses.map(e => e.date.slice(0, 7)))].sort().reverse();
+
+      if (!selectedMonth) {
+        selectedMonth = months.length ? months[0] : new Date().toISOString().slice(0, 7);
+      }
+
+      // Pre-fill budget input if exists
+      document.getElementById("budgetInput").value = budgetMap[selectedMonth] || "";
+
+      months.forEach(m => {
+        const btn = document.createElement("button");
+        btn.className = "month-btn" + (m === selectedMonth ? " active" : "");
+        const [y, mo] = m.split("-");
+        const name = new Date(y, mo - 1).toLocaleString("default", { month: "short" });
+
+        btn.innerText = `${name} '${y.substring(2)}`;
+        btn.onclick = () => {
+          selectedMonth = m;
+          document.getElementById("budgetInput").value = budgetMap[selectedMonth] || "";
+          loadMonths();
+          render();
+        };
+        box.appendChild(btn);
+      });
+    }
+
+    function render() {
+      const table = document.getElementById("table");
+      table.innerHTML = "";
+
+      let total = 0;
+      let count = 0;
+      let overallTotal = 0;
+
+      allExpenses.forEach(e => {
+        overallTotal += e.amount;
+        if (e.date.startsWith(selectedMonth)) {
+          total += e.amount;
+          count++;
+          table.innerHTML += `
         <tr>
           <td>${e.date}</td>
-          <td>₹${e.amount}</td>
           <td>${e.reason}</td>
-          <td><button class="delete-btn" onclick="del('${e.id}')">Delete</button></td>
+          <td class="text-right">₹${e.amount.toLocaleString()}</td>
+          <td class="text-center">
+            <button class="delete-btn" data-id="${e.id}">Delete</button>
+          </td>
         </tr>
       `;
-    }
-  });
+        }
+      });
 
-  document.getElementById("total").innerText =
-    `Total for ${selectedMonth}: ₹${total}`;
+      if (count === 0) {
+        table.innerHTML = `<tr><td colspan="4" class="empty-table">No expenses logged for this month. You're doing great!</td></tr>`;
+      }
 
-  const budget = budgetMap[selectedMonth] || 0;
-  const savePercent = document.getElementById("saveSlider").value;
+      // Analyze Budget
+      const budget = budgetMap[selectedMonth] || 0;
+      const savePercent = document.getElementById("saveSlider").value;
 
-  const saveAmount = (total * savePercent) / 100;
-  const spendAmount = total - saveAmount;
-  const remaining = budget - total;
+      const saveTarget = (budget * savePercent) / 100;
+      const limitTarget = budget - saveTarget;
+      const remainingBudget = budget - total;
 
-  document.getElementById("summary").innerHTML = `
-    <h3>Total for ${selectedMonth}: ₹${total}</h3>
-    <p style="color:green;">
-      Remaining ₹${remaining} | Save ₹${saveAmount.toFixed(0)} | Spend ₹${spendAmount.toFixed(0)}
-    </p>
-    <h3>Overall Total: ₹${allExpenses.reduce((s,e)=>s+e.amount,0)}</h3>
-    <div style="border-left:4px solid #4f46e5; padding:10px;">
-      Save ₹${saveAmount.toFixed(0)} aside. Spend max ₹${spendAmount.toFixed(0)}.
+      document.getElementById("summary").innerHTML = `
+    <div class="readout-total">Total for ${selectedMonth}: ₹${total.toLocaleString()}</div>
+    <div class="readout-green" style="${remainingBudget < 0 ? 'color: var(--danger);' : ''}">
+      Remaining ₹${Math.max(0, remainingBudget).toLocaleString()} | Save ₹${Math.max(0, saveTarget).toLocaleString()} | Spend ₹${Math.max(0, limitTarget - total).toLocaleString()}
+    </div>
+    <div class="readout-overall">Overall Total: ₹${overallTotal.toLocaleString()}</div>
+    <div class="readout-quote">
+      Save ₹${Math.max(0, saveTarget).toLocaleString()} aside. Spend max ₹${Math.max(0, limitTarget - total).toLocaleString()}.
     </div>
   `;
-}
+    }
 
-/* INIT */
-document.addEventListener("DOMContentLoaded", ()=>{
-  document.getElementById("date").valueAsDate = new Date();
-  loadData();
-});
+    // --- Lifecycle ---
+    document.addEventListener("DOMContentLoaded", () => {
+      document.getElementById("date").valueAsDate = new Date();
+      loadData();
 
-</script>
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('./service-worker.js')
+          .then(() => console.log('SW Registered'))
+          .catch(err => console.warn('SW Failed', err));
+      }
 
+      // Bindings
+      document.getElementById('addBtn').addEventListener('click', addExpense);
+      document.querySelectorAll('.quickBtn').forEach(b => {
+        b.addEventListener('click', () => quickAdd(Number(b.getAttribute('data-amount')) || 0, b));
+      });
+      document.getElementById('saveBudgetBtn').addEventListener('click', saveBudget);
+      document.getElementById('saveSlider').addEventListener('input', updatePercent);
 
+      document.getElementById('table').addEventListener('click', (ev) => {
+        const btn = ev.target.closest('.delete-btn');
+        if (btn) del(btn.getAttribute('data-id'));
+      });
+    });
+
+  </script>
 </body>
+
 </html>

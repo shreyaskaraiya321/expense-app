@@ -1,10 +1,10 @@
 {
-  "name": "Expense Tracker",
-  "short_name": "Expenses",
+  "name": "Nova Expenses",
+  "short_name": "Nova",
   "start_url": "index.html",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#4f46e5",
+  "background_color": "#0f172a",
+  "theme_color": "#818cf8",
   "icons": [
     {
       "src": "icon-192.png",
