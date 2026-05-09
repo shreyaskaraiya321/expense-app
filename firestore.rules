@@ -1,0 +1,30 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Basic rules to ensure data is structured correctly since we don't have Auth.
+    // WARNING: Since there's no Authentication, anyone can read/write if they know the collection.
+    // In a real production app, you MUST implement Firebase Auth and restrict access.
+    
+    match /expenses/{expenseId} {
+      // Anyone can read or delete, or create if data is valid
+      allow read, delete: if true;
+      allow create, update: if 
+        request.resource.data.amount is number && 
+        request.resource.data.amount >= 0 &&
+        request.resource.data.reason is string &&
+        request.resource.data.reason.size() <= 100 &&
+        request.resource.data.date is string &&
+        request.resource.data.deviceId is string;
+    }
+    
+    match /budgets/{budgetId} {
+      allow read, delete: if true;
+      allow create, update: if 
+        request.resource.data.amount is number && 
+        request.resource.data.amount >= 0 &&
+        request.resource.data.month is string &&
+        request.resource.data.deviceId is string;
+    }
+  }
+}

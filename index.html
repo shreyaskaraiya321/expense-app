@@ -245,6 +245,13 @@
       box-shadow: 0 2px 8px rgba(99, 102, 241, 0.2);
     }
 
+    .btn:disabled, .delete-btn:disabled, .month-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none !important;
+      box-shadow: none !important;
+    }
+
     .quick-row {
       display: none;
     }
@@ -614,7 +621,7 @@
 
         <div class="input-group">
           <label>Amount</label>
-          <input type="number" id="amount" required>
+          <input type="number" id="amount" min="1" step="any" required>
         </div>
 
         <div class="input-group">
@@ -644,7 +651,7 @@
 
         <div class="input-group">
           <label>Monthly Budget</label>
-          <input type="number" id="budgetInput" required>
+          <input type="number" id="budgetInput" min="1" step="any" required>
         </div>
         <button id="saveBudgetBtn" class="btn primary-btn mb-4">Save Budget</button>
 
@@ -755,13 +762,18 @@
         return showToast("Please fill all required fields", "error");
       }
 
+      if (Number(amount) < 1) {
+        return showToast("Amount must be at least 1", "error");
+      }
+
       showLoader();
       btn.disabled = true;
       db.collection("expenses").add({
         amount: Number(amount),
         reason,
         date,
-        deviceId: _deviceId
+        deviceId: _deviceId,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
       }).then(() => {
         document.getElementById("amount").value = "";
         document.getElementById("reason").value = "";
@@ -787,7 +799,8 @@
         amount,
         reason: "Quick Add",
         date,
-        deviceId: _deviceId
+        deviceId: _deviceId,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
       }).then(() => {
         showToast(`Quickly logged ₹${amount}`, "success");
       }).catch(err => {
@@ -799,21 +812,30 @@
     }
 
     function saveBudget() {
+      const btn = document.getElementById("saveBudgetBtn");
+      if (btn.disabled) return;
+
       if (!selectedMonth) {
         selectedMonth = new Date().toISOString().slice(0, 7);
       }
       const budget = Number(document.getElementById("budgetInput").value);
-      if (!budget) return showToast("Enter a valid budget amount", "error");
+      if (!budget || budget < 1) return showToast("Enter a valid budget amount (min 1)", "error");
 
       showLoader();
+      btn.disabled = true;
       db.collection("budgets").doc(_deviceId + "_" + selectedMonth).set({
-        amount: budget
+        amount: budget,
+        month: selectedMonth,
+        deviceId: _deviceId,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
       }).then(() => {
         showToast(`Budget set to ₹${budget} for the month`, "success");
         hideLoader();
       }).catch(err => {
         hideLoader();
         showToast("Error saving budget", "error");
+      }).finally(() => {
+        btn.disabled = false;
       });
     }
 
@@ -823,13 +845,16 @@
       render();
     }
 
-    function del(id) {
+    function del(id, btnElement) {
+      if (btnElement && btnElement.disabled) return;
       showLoader();
+      if (btnElement) btnElement.disabled = true;
       db.collection("expenses").doc(id).delete().then(() => {
         showToast("Expense record removed", "success");
         hideLoader();
       }).catch(err => {
         hideLoader();
+        if (btnElement) btnElement.disabled = false;
         showToast("Failed to delete record", "error");
       });
     }
@@ -861,8 +886,14 @@
         snap.forEach(doc => {
           allExpenses.push({ id: doc.id, ...doc.data() });
         });
-        // Sort locally by descending date
-        allExpenses.sort((a, b) => b.date.localeCompare(a.date));
+        // Sort locally by descending date, then timestamp
+        allExpenses.sort((a, b) => {
+          const dateDiff = b.date.localeCompare(a.date);
+          if (dateDiff !== 0) return dateDiff;
+          const timeA = a.createdAt ? (a.createdAt.toMillis ? a.createdAt.toMillis() : 0) : 0;
+          const timeB = b.createdAt ? (b.createdAt.toMillis ? b.createdAt.toMillis() : 0) : 0;
+          return timeB - timeA;
+        });
 
         loadMonths();
         render();
@@ -975,7 +1006,7 @@
 
       document.getElementById('table').addEventListener('click', (ev) => {
         const btn = ev.target.closest('.delete-btn');
-        if (btn) del(btn.getAttribute('data-id'));
+        if (btn) del(btn.getAttribute('data-id'), btn);
       });
     });
 
