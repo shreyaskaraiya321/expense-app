@@ -23,16 +23,16 @@
   <style>
     /* CSS Variables */
     :root {
-      --bg-color: #f8fafc;
-      --surface: rgba(255, 255, 255, 0.6);
-      --surface-border: rgba(255, 255, 255, 0.8);
-      --primary: #6366f1;
-      --primary-hover: #4f46e5;
+      --bg-color: #f1f5f9;
+      --surface: rgba(255, 255, 255, 0.4);
+      --surface-border: rgba(255, 255, 255, 0.6);
+      --primary: #4f46e5;
+      --primary-hover: #4338ca;
       --success: #10b981;
       --danger: #ef4444;
-      --text-main: #1d1d1f;
-      --text-muted: #86868b;
-      --radius: 16px;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --radius: 20px;
       --font-display: 'Plus Jakarta Sans', sans-serif;
       --font-body: 'Inter', sans-serif;
     }
@@ -45,7 +45,7 @@
 
     body {
       font-family: var(--font-body);
-      background: linear-gradient(135deg, #f0f4ff 0%, #fff0f5 50%, #e0f2fe 100%);
+      background: var(--bg-color);
       color: var(--text-main);
       min-height: 100vh;
       padding: 40px 20px;
@@ -55,27 +55,41 @@
     }
 
     /* Background animated glows for glassmorphism effect */
-    .bg-glow-1, .bg-glow-2 {
+    .bg-glow-1,
+    .bg-glow-2 {
       position: fixed;
       border-radius: 50%;
-      filter: blur(100px);
+      filter: blur(120px);
       z-index: -1;
-      animation: float 12s infinite ease-in-out alternate;
+      animation: float 15s infinite ease-in-out alternate;
+      opacity: 0.6;
     }
+
     .bg-glow-1 {
-      width: 400px; height: 400px;
-      background: rgba(196, 181, 253, 0.5); /* Soft lavender */
-      top: -50px; left: -50px;
+      width: 500px;
+      height: 500px;
+      background: linear-gradient(135deg, #a5b4fc, #e0e7ff);
+      top: -100px;
+      left: -100px;
     }
+
     .bg-glow-2 {
-      width: 500px; height: 500px;
-      background: rgba(186, 230, 253, 0.4); /* Soft light blue */
-      bottom: -100px; right: -100px;
-      animation-delay: -6s;
+      width: 600px;
+      height: 600px;
+      background: linear-gradient(135deg, #fbcfe8, #c4b5fd);
+      bottom: -150px;
+      right: -150px;
+      animation-delay: -7s;
     }
+
     @keyframes float {
-      0% { transform: translate(0, 0) scale(1); }
-      100% { transform: translate(40px, 60px) scale(1.1); }
+      0% {
+        transform: translate(0, 0) scale(1);
+      }
+
+      100% {
+        transform: translate(40px, 60px) scale(1.1);
+      }
     }
 
     .app-container {
@@ -102,25 +116,95 @@
     }
 
     .sync-widget {
-      display: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 10px;
+      background: rgba(255, 255, 255, 0.5);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 1rem;
+      border: 1px solid var(--surface-border);
+      color: var(--text-main);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
     }
 
-    /* Card */
+    .sync-widget span {
+      letter-spacing: 1px;
+      color: var(--primary);
+      margin-right: 10px;
+    }
+
+    .sync-widget button {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 4px 12px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.85rem;
+      transition: background 0.2s;
+    }
+
+    .sync-widget button:hover {
+      background: var(--primary-hover);
+    }
+
+    /* Card - OxygenOS Premium Light Glass */
     .glass-card {
-      background: var(--surface);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border: 1px solid var(--surface-border);
+      position: relative;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0.4) 100%);
+      backdrop-filter: blur(40px) saturate(200%);
+      -webkit-backdrop-filter: blur(40px) saturate(200%);
+      border: 1px solid rgba(255, 255, 255, 0.7);
+      border-top: 1px solid rgba(255, 255, 255, 1);
+      border-left: 1px solid rgba(255, 255, 255, 0.8);
       border-radius: var(--radius);
       padding: 35px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+      box-shadow:
+        0 30px 60px rgba(0, 0, 0, 0.05),
+        inset 0 0 100px rgba(255, 255, 255, 0.9),
+        /* Stronger glowing white vignette */
+        inset 1px 1px 2px rgba(255, 255, 255, 1);
+      /* Specular edge highlight */
       margin-bottom: 30px;
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+      overflow: hidden;
+    }
+
+    /* Noise texture for realistic frosted glass feel */
+    .glass-card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+      opacity: 0.35;
+      /* Increased opacity for more prominent grain */
+      mix-blend-mode: overlay;
+      /* Creates a glowing, sparkling effect against the glass */
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .glass-card>* {
+      position: relative;
+      z-index: 1;
     }
 
     .glass-card:hover {
       transform: translateY(-2px);
-      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+      border-top-color: rgba(255, 255, 255, 1);
+      box-shadow:
+        0 40px 80px rgba(0, 0, 0, 0.08),
+        inset 0 0 120px rgba(255, 255, 255, 1),
+        inset 1px 1px 3px rgba(255, 255, 255, 1);
     }
 
     .card-header {
@@ -197,7 +281,7 @@
       backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
       border: 1px solid rgba(255, 255, 255, 0.8);
-      border-radius: 10px;
+      border-radius: 12px;
       color: var(--text-main);
       font-family: var(--font-body);
       font-size: 1.05rem;
@@ -228,24 +312,27 @@
     }
 
     .primary-btn {
-      background: linear-gradient(135deg, #6366f1, #a855f7);
+      background: linear-gradient(135deg, #4f46e5, #9333ea);
       color: #fff;
       width: 100%;
-      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
-      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 8px 25px rgba(79, 70, 229, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
     }
 
     .primary-btn:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 6px 16px rgba(99, 102, 241, 0.35);
+      transform: translateY(-2px);
+      box-shadow: 0 12px 30px rgba(79, 70, 229, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3);
     }
 
     .primary-btn:active {
       transform: translateY(1px);
-      box-shadow: 0 2px 8px rgba(99, 102, 241, 0.2);
+      box-shadow: 0 4px 10px rgba(79, 70, 229, 0.2);
     }
 
-    .btn:disabled, .delete-btn:disabled, .month-btn:disabled {
+    .btn:disabled,
+    .delete-btn:disabled,
+    .month-btn:disabled {
       opacity: 0.6;
       cursor: not-allowed;
       transform: none !important;
@@ -318,7 +405,7 @@
       border-radius: 12px;
       padding: 20px;
       border: 1px solid var(--surface-border);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
     }
 
     .readout-total {
@@ -383,10 +470,10 @@
     }
 
     .month-btn.active {
-      background: linear-gradient(135deg, #6366f1, #a855f7);
+      background: linear-gradient(135deg, #4f46e5, #9333ea);
       color: #fff;
       border-color: transparent;
-      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
     }
 
     /* Table */
@@ -526,8 +613,6 @@
 
       .sync-widget {
         position: static;
-        margin-top: 10px;
-        display: inline-block;
       }
 
       .glass-card {
@@ -590,13 +675,108 @@
         font-size: 0.9rem;
       }
     }
+
+    /* Share Modal */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(15, 23, 42, 0.4);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+      opacity: 1;
+    }
+
+    .modal-content {
+      position: relative;
+      width: 90%;
+      max-width: 400px;
+      padding: 30px;
+      text-align: center;
+      animation: modalPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+
+    .modal-content h3 {
+      font-family: var(--font-display);
+      margin-bottom: 10px;
+      font-size: 1.5rem;
+    }
+
+    .close-btn {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+
+    @keyframes modalPop {
+      0% {
+        transform: scale(0.9);
+        opacity: 0;
+      }
+
+      100% {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
   </style>
 </head>
 
 <body>
 
+  <div id="shareModal" class="modal-overlay">
+    <div class="modal-content glass-card">
+      <button class="close-btn" onclick="closeShareModal()">&times;</button>
+      <h3>Easy Sync</h3>
+      <p style="color: var(--text-muted); margin-bottom: 20px; font-size: 0.95rem;">Scan this QR code with your phone's
+        camera to connect instantly.</p>
+
+      <div id="qrContainer" style="text-align: center; margin-bottom: 25px;">
+        <img id="qrCodeImg" src="" alt="QR Code"
+          style="border-radius: 16px; padding: 12px; background: #fff; box-shadow: 0 8px 24px rgba(0,0,0,0.12); width: 180px; height: 180px;">
+      </div>
+
+      <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+        <button class="btn primary-btn" onclick="copySyncLink()" style="flex: 1; padding: 10px; font-size: 0.9rem;">Copy
+          Link</button>
+        <button class="btn" onclick="copySyncCode()"
+          style="flex: 1; background: var(--surface); border: 1px solid var(--surface-border); color: var(--text-main); padding: 10px; font-size: 0.9rem;">Copy
+          Code</button>
+      </div>
+
+      <div id="manualInputContainer" style="margin-top: 15px; text-align: left;">
+        <label style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 5px;">Or link via
+          Sync Code</label>
+        <div style="display: flex; gap: 8px;">
+          <input type="text" id="manualSyncCode" placeholder="E.g. A1B2-C3D4"
+            style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--surface-border); background: rgba(255,255,255,0.5); color: var(--text-main); font-family: var(--font-body); outline: none;">
+          <button class="btn primary-btn" onclick="submitManualCode()"
+            style="padding: 10px 15px; font-size: 0.9rem; width: auto;">Link</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="bg-glow-1"></div>
-  <div class="bg-glow-2"></div>  <div id="loader" class="loader-overlay active">
+  <div class="bg-glow-2"></div>
+  <div id="loader" class="loader-overlay active">
     <div class="spinner"></div>
   </div>
 
@@ -606,9 +786,8 @@
     <header class="app-header">
       <h1>Monthly Expense Tracker</h1>
       <div class="sync-widget">
-        <span id="syncCodeDisplay">----</span>
-        <button onclick="promptLinkDevice()"
-          style="background: none; border: none; cursor: pointer; text-decoration: underline; margin-left: 5px;">Link</button>
+        <span id="syncCodeDisplay" title="Your Sync Code">----</span>
+        <button onclick="openShareModal()">Easy Sync</button>
       </div>
     </header>
 
@@ -658,7 +837,7 @@
         <div class="slider-container">
           <label class="label-sub">Save Percentage</label>
           <input type="range" id="saveSlider" min="0" max="100" value="50" class="custom-range">
-          <div id="percentText" style="font-weight:700; color:#000;">Save: 50% | Spend: 50%</div>
+          <div id="percentText" style="font-weight:700; color:var(--text-main);">Save: 50% | Spend: 50%</div>
         </div>
       </section>
 
@@ -727,8 +906,18 @@
 
     const db = firebase.firestore();
 
+    const urlParams = new URLSearchParams(window.location.search);
+    const syncParam = urlParams.get('sync');
     let _deviceId = localStorage.getItem("nova_sync_id");
-    if (!_deviceId) {
+
+    if (syncParam) {
+      _deviceId = syncParam.trim().toUpperCase();
+      localStorage.setItem("nova_sync_id", _deviceId);
+      window.history.replaceState({}, document.title, window.location.pathname);
+      document.addEventListener("DOMContentLoaded", () => {
+        showToast("Device synced securely via link!", "success");
+      });
+    } else if (!_deviceId) {
       _deviceId = Math.random().toString(36).substring(2, 6).toUpperCase() + "-" + Math.random().toString(36).substring(2, 6).toUpperCase();
       localStorage.setItem("nova_sync_id", _deviceId);
     }
@@ -740,20 +929,49 @@
     let expensesUnsub = null;
     let budgetsUnsub = null;
 
-    function promptLinkDevice() {
-      const code = prompt("Enter an existing Sync Code to link this device:", _deviceId);
+    function submitManualCode() {
+      const code = document.getElementById("manualSyncCode").value;
       if (code && code.trim() !== "") {
         _deviceId = code.trim().toUpperCase();
         localStorage.setItem("nova_sync_id", _deviceId);
         showToast("Device linked! Re-syncing data...", "success");
+        document.getElementById("manualSyncCode").value = "";
+        closeShareModal();
         loadData();
+      } else {
+        showToast("Please enter a valid code", "error");
       }
+    }
+
+    function openShareModal() {
+      // In a real deployed app, window.location.origin is enough.
+      // For local testing on network, use local IP if possible, but origin is best fallback.
+      const link = `${window.location.origin}${window.location.pathname}?sync=${_deviceId}`;
+      const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(link)}&color=0f172a&bgcolor=ffffff`;
+      document.getElementById('qrCodeImg').src = qrUrl;
+      document.getElementById('shareModal').classList.add('active');
+    }
+
+    function closeShareModal() {
+      document.getElementById('shareModal').classList.remove('active');
+    }
+
+    function copySyncLink() {
+      const link = `${window.location.origin}${window.location.pathname}?sync=${_deviceId}`;
+      navigator.clipboard.writeText(link).then(() => {
+        showToast("Link copied to clipboard!", "success");
+      });
+    }
+
+    function copySyncCode() {
+      navigator.clipboard.writeText(_deviceId).then(() => {
+        showToast("Code copied to clipboard!", "success");
+      });
     }
 
     // --- Logic ---
     function addExpense() {
       const btn = document.getElementById("addBtn");
-      if (btn.disabled) return;
       const amount = document.getElementById("amount").value;
       const reason = document.getElementById("reason").value;
       const date = document.getElementById("date").value;
@@ -767,7 +985,6 @@
       }
 
       showLoader();
-      btn.disabled = true;
       db.collection("expenses").add({
         amount: Number(amount),
         reason,
@@ -779,22 +996,20 @@
         document.getElementById("reason").value = "";
         showToast("Expense logged securely!", "success");
         if (window.innerWidth < 900) {
-          document.querySelector('.dashboard-hero').scrollIntoView({ behavior: "smooth" });
+          const dash = document.querySelector('.dashboard-hero');
+          if (dash) dash.scrollIntoView({ behavior: "smooth" });
         }
       }).catch(err => {
         showToast("Error adding expense.", "error");
         console.error(err);
       }).finally(() => {
         hideLoader();
-        btn.disabled = false;
       });
     }
 
     function quickAdd(amount, btnElement) {
-      if (btnElement.disabled) return;
       const date = new Date().toISOString().split('T')[0];
       showLoader();
-      btnElement.disabled = true;
       db.collection("expenses").add({
         amount,
         reason: "Quick Add",
@@ -807,7 +1022,6 @@
         showToast("Error fast-logging.", "error");
       }).finally(() => {
         hideLoader();
-        btnElement.disabled = false;
       });
     }
 
