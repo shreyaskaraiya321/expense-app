@@ -937,6 +937,7 @@
         showToast("Device linked! Re-syncing data...", "success");
         document.getElementById("manualSyncCode").value = "";
         closeShareModal();
+        selectedMonth = ""; // Reset to dynamically pick the latest month from new data
         loadData();
       } else {
         showToast("Please enter a valid code", "error");
